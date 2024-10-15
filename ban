@@ -1,0 +1,68 @@
+//THIS IS AN ITALIAN CODE. IF YOU COPY THIS INTO YOUR VISUAL STUDIO INDEX, WILL WORK BUT IN ITALIAN!
+//QUESTO è UN CODICE ITALIANO. SE LO COPI DENTRO IL TUO INDEX DI VISUAL STUDIO CODE FUNZIONERà MA IN ITALIANO, SE CAPISCI QUESTA LINGUA ALLORA è PERFETTO!  
+
+client.on("ready", () => {
+        console.log("Online");
+    
+        // ID del server
+        var server = client.guilds.cache.get("1063567303251341392");
+        
+        // Creazione del comando /ban
+        server.commands.create({
+            name: "ban",
+            description: "Questo comando banna un utente dal server",
+            options: [
+                {
+                    name: "utente",
+                    description: "L'utente da bannare",
+                    type: 6, // 6 è per gli utenti (USER)
+                    required: true
+                },
+                {
+                    name: "motivo",
+                    description: "Il motivo del ban",
+                    type: 3, // 3 è per le stringhe (STRING)
+                    required: false
+                }
+            ]
+        });
+    });
+    
+    client.on("interactionCreate", async interaction => {
+        if (!interaction.isCommand()) return;
+    
+        if (interaction.commandName === "ban") {
+            // Controlla se l'utente ha il permesso di bannare
+            if (!interaction.member.permissions.has("BAN_MEMBERS")) {
+                return interaction.reply({
+                    content: "Non hai il permesso per usare questo comando!",
+                    ephemeral: true // Visibile solo all'utente che esegue il comando
+                });
+            }
+    
+            // Ottiene l'utente e il motivo dal comando
+            const utenteDaBannare = interaction.options.getUser("utente");
+            const motivo = interaction.options.getString("motivo") || "Nessun motivo fornito";
+    
+            // Verifica se l'utente esiste nel server
+            const member = interaction.guild.members.cache.get(utenteDaBannare.id);
+            if (!member) {
+                return interaction.reply({
+                    content: "Non riesco a trovare l'utente indicato!",
+                    ephemeral: true
+                });
+            }
+    
+            // Esegue il ban
+            try {
+                await member.ban({ reason: motivo });
+                interaction.reply(`${utenteDaBannare.tag} è stato bannato\n\n***MOTIVO:*** ${motivo}`);
+            } catch (error) {
+                console.error(error);
+                interaction.reply({
+                    content: "Si è verificato un errore durante il tentativo di bannare l'utente.",
+                    ephemeral: true
+                });
+            }
+        }
+    });
